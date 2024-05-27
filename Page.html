@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<!-- Generateur de Nombre V0.1 -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaussian Random Number Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+        }
+        .controls {
+            margin-right: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        canvas {
+            max-width: 400px;
+            max-height: 300px;
+        }
+        .result-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="input-group">
+                <label for="maxNumber">Enter a maximum number:</label>
+                <input type="number" id="maxNumber" min="1" required>
+            </div>
+            <div class="input-group">
+                <label for="mean">Mean:</label>
+                <input type="range" id="mean" min="1" step="1">
+                <span id="meanValue"></span>
+            </div>
+            <div class="input-group">
+                <label for="stdDev">Standard Deviation:</label>
+                <input type="range" id="stdDev" min="1" step="1">
+                <span id="stdDevValue"></span>
+            </div>
+            <button onclick="generateNumber()">Generate Number</button>
+        </div>
+        <div>
+            <canvas id="chart"></canvas>
+            <div class="result-container">
+                <p id="result"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const maxNumberInput = document.getElementById('maxNumber');
+        const meanSlider = document.getElementById('mean');
+        const stdDevSlider = document.getElementById('stdDev');
+        const meanValue = document.getElementById('meanValue');
+        const stdDevValue = document.getElementById('stdDevValue');
+        const resultElement = document.getElementById('result');
+        const ctx = document.getElementById('chart').getContext('2d');
+        let chart;
+
+        function createChart() {
+            if (chart) {
+                chart.destroy();
+            }
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Probability Density Function',
+                        data: [],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                        },
+                        y: {
+                            beginAtZero: true,
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(mean, stdDev) {
+            const maxNumber = parseInt(maxNumberInput.value);
+            const xValues = [];
+            const yValues = [];
+            const step = maxNumber / 100;
+
+            for (let x = 1; x <= maxNumber; x += step) {
+                const exponent = -0.5 * Math.pow((x - mean) / stdDev, 2);
+                const y = (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+                xValues.push(x);
+                yValues.push(y);
+            }
+
+            chart.data.labels = xValues;
+            chart.data.datasets[0].data = yValues;
+            chart.update();
+        }
+
+        maxNumberInput.oninput = function() {
+            const maxNumber = parseInt(maxNumberInput.value);
+            if (maxNumber > 0) {
+                meanSlider.max = maxNumber;
+                stdDevSlider.max = maxNumber;
+                meanSlider.value = Math.min(meanSlider.value, meanSlider.max);
+                stdDevSlider.value = Math.min(stdDevSlider.value, stdDevSlider.max);
+                meanValue.textContent = meanSlider.value;
+                stdDevValue.textContent = stdDevSlider.value;
+                updateChart(parseInt(meanSlider.value), parseInt(stdDevSlider.value));
+            }
+        };
+
+        meanSlider.oninput = function() {
+            meanValue.textContent = this.value;
+            updateChart(parseInt(this.value), parseInt(stdDevSlider.value));
+        };
+
+        stdDevSlider.oninput = function() {
+            stdDevValue.textContent = this.value;
+            updateChart(parseInt(meanSlider.value), parseInt(this.value));
+        };
+
+        function generateGaussianRandom(mean, stdDev) {
+            let u1 = Math.random();
+            let u2 = Math.random();
+            let z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+            return mean + z * stdDev;
+        }
+
+        function generateNumber() {
+            const maxNumber = parseInt(maxNumberInput.value);
+            const mean = parseInt(meanSlider.value);
+            const stdDev = parseInt(stdDevSlider.value);
+
+            let number;
+            do {
+                number = Math.round(generateGaussianRandom(mean, stdDev));
+            } while (number < 1 || number > maxNumber);
+
+            resultElement.textContent = `Generated number: ${number}`;
+        }
+
+        // Initialize the chart with default values
+        createChart();
+    </script>
+</body>
+</html>
