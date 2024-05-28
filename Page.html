@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- Generateur de Nombre V0.1 -->
 <html lang="en">
+<!-- V0.2 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,9 +33,15 @@
             margin-bottom: 5px;
         }
         input[type="number"], input[type="range"] {
-            width: 100%;
+            width: calc(100% - 60px);
             padding: 8px;
             margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        input[type="text"] {
+            width: 50px;
+            padding: 8px;
+            margin-left: 10px;
             box-sizing: border-box;
         }
         button {
@@ -69,12 +75,12 @@
             <div class="input-group">
                 <label for="mean">Mean:</label>
                 <input type="range" id="mean" min="1" step="1">
-                <span id="meanValue"></span>
+                <input type="text" id="meanInput" value="1">
             </div>
             <div class="input-group">
                 <label for="stdDev">Standard Deviation:</label>
                 <input type="range" id="stdDev" min="1" step="1">
-                <span id="stdDevValue"></span>
+                <input type="text" id="stdDevInput" value="1">
             </div>
             <button onclick="generateNumber()">Generate Number</button>
         </div>
@@ -90,9 +96,9 @@
     <script>
         const maxNumberInput = document.getElementById('maxNumber');
         const meanSlider = document.getElementById('mean');
+        const meanInput = document.getElementById('meanInput');
         const stdDevSlider = document.getElementById('stdDev');
-        const meanValue = document.getElementById('meanValue');
-        const stdDevValue = document.getElementById('stdDevValue');
+        const stdDevInput = document.getElementById('stdDevInput');
         const resultElement = document.getElementById('result');
         const ctx = document.getElementById('chart').getContext('2d');
         let chart;
@@ -152,20 +158,36 @@
                 stdDevSlider.max = maxNumber;
                 meanSlider.value = Math.min(meanSlider.value, meanSlider.max);
                 stdDevSlider.value = Math.min(stdDevSlider.value, stdDevSlider.max);
-                meanValue.textContent = meanSlider.value;
-                stdDevValue.textContent = stdDevSlider.value;
+                meanInput.value = meanSlider.value;
+                stdDevInput.value = stdDevSlider.value;
                 updateChart(parseInt(meanSlider.value), parseInt(stdDevSlider.value));
             }
         };
 
         meanSlider.oninput = function() {
-            meanValue.textContent = this.value;
+            meanInput.value = this.value;
             updateChart(parseInt(this.value), parseInt(stdDevSlider.value));
         };
 
         stdDevSlider.oninput = function() {
-            stdDevValue.textContent = this.value;
+            stdDevInput.value = this.value;
             updateChart(parseInt(meanSlider.value), parseInt(this.value));
+        };
+
+        meanInput.oninput = function() {
+            const value = parseInt(this.value);
+            if (!isNaN(value) && value >= 1 && value <= parseInt(meanSlider.max)) {
+                meanSlider.value = value;
+                updateChart(value, parseInt(stdDevSlider.value));
+            }
+        };
+
+        stdDevInput.oninput = function() {
+            const value = parseInt(this.value);
+            if (!isNaN(value) && value >= 1 && value <= parseInt(stdDevSlider.max)) {
+                stdDevSlider.value = value;
+                updateChart(parseInt(meanSlider.value), value);
+            }
         };
 
         function generateGaussianRandom(mean, stdDev) {
