@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- V0.2 -->
+<!-- V0.3 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,6 +73,10 @@
                 <input type="number" id="maxNumber" min="1" required>
             </div>
             <div class="input-group">
+                <label for="numDraws">Number of Draws:</label>
+                <input type="number" id="numDraws" min="1" value="1" required>
+            </div>
+            <div class="input-group">
                 <label for="mean">Mean:</label>
                 <input type="range" id="mean" min="1" step="1">
                 <input type="text" id="meanInput" value="1">
@@ -95,6 +99,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const maxNumberInput = document.getElementById('maxNumber');
+        const numDrawsInput = document.getElementById('numDraws');
         const meanSlider = document.getElementById('mean');
         const meanInput = document.getElementById('meanInput');
         const stdDevSlider = document.getElementById('stdDev');
@@ -199,15 +204,20 @@
 
         function generateNumber() {
             const maxNumber = parseInt(maxNumberInput.value);
+            const numDraws = parseInt(numDrawsInput.value);
             const mean = parseInt(meanSlider.value);
             const stdDev = parseInt(stdDevSlider.value);
 
-            let number;
-            do {
-                number = Math.round(generateGaussianRandom(mean, stdDev));
-            } while (number < 1 || number > maxNumber);
+            let sum = 0;
+            for (let i = 0; i < numDraws; i++) {
+                let number;
+                do {
+                    number = Math.round(generateGaussianRandom(mean, stdDev));
+                } while (number < 1 || number > maxNumber);
+                sum += number;
+            }
 
-            resultElement.textContent = `Generated number: ${number}`;
+            resultElement.textContent = `Sum of ${numDraws} draws: ${sum}`;
         }
 
         // Initialize the chart with default values
